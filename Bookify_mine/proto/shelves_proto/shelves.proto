@@ -1,0 +1,44 @@
+syntax = "proto3";
+
+package shelves.v1;
+
+option go_package = "proto/shelves_proto/transport/grpc;shelvesgrpc";
+
+// ====== Enum Shelf ======
+
+enum Shelf {
+  SHELF_UNSPECIFIED = 0;
+  SHELF_TO_READ = 1;
+  SHELF_READING = 2;
+  SHELF_FINISHED = 3;
+}
+
+message ShelfItem {
+  string user_id = 1;
+  string book_id = 2;
+  Shelf shelf = 3;
+}
+
+message GetShelfItemRequest {
+  string user_id = 1;
+  string book_id = 2;
+}
+
+message GetShelfItemResponse {
+  ShelfItem item = 1;
+}
+
+message CreateShelfItemRequest {
+  ShelfItem item = 1;
+}
+
+message CreateShelfItemResponse {
+  ShelfItem item = 1;
+}
+
+// ====== Service ======
+
+service ShelvesService {
+  rpc GetShelfItem(GetShelfItemRequest) returns (GetShelfItemResponse);
+  rpc CreateShelfItem(CreateShelfItemRequest) returns (CreateShelfItemResponse);
+}

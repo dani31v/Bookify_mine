@@ -1,0 +1,99 @@
+#version: "3.8"
+
+services:
+
+  library:
+    build:
+      context: .
+      dockerfile: services/library/Dockerfile
+    environment:
+    ports:
+      - "8081:8081"
+      - "50051:50051"
+
+  reviews:
+    build:
+      context: .
+      dockerfile: services/reviews/Dockerfile
+    environment:
+      DB_HOST: postgres
+      DB_USER: userbookify
+      DB_PASSWORD: user_bookify
+      DB_NAME: bookify
+      DB_PORT: 5432
+    depends_on:
+      - postgres
+    ports:
+      - "8082:8082"
+      - "50054:50054"
+
+  playlist:
+    build:
+      context: .
+      dockerfile: services/playlist/Dockerfile
+    environment:
+    ports:
+      - "8083:8083"
+      - "50053:50053"
+
+  shelves:
+    build:
+      context: .
+      dockerfile: services/shelves/Dockerfile
+    environment:
+      DB_HOST: postgres
+      DB_USER: userbookify
+      DB_PASSWORD: user_bookify
+      DB_NAME: bookify
+      DB_PORT: 5432
+    depends_on:
+      - postgres
+    ports:
+      - "8084:8084"
+      - "50055:50055"
+
+  gateway:
+    build:
+      context: .
+      dockerfile: services/gateway/Dockerfile
+    environment:
+      LIBRARY_URL: http://library:8081
+      REVIEWS_URL: http://reviews:8082
+      PLAYLIST_URL: http://playlist:8083
+      SHELVES_URL: http://shelves:8084
+    depends_on:
+      - library
+      - reviews
+      - playlist
+      - shelves
+    ports:
+      - "8090:8090"
+
+  postgres:
+    image: postgres:15
+    container_name: bookify_postgres
+    restart: always
+    environment:
+      POSTGRES_USER: userbookify
+      POSTGRES_PASSWORD: user_bookify
+      POSTGRES_DB: bookify
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./postgres/init.sql:/docker-entrypoint-initdb.d/init.sql
+
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: bookify_pgadmin
+    restart: always
+    environment:
+      PGADMIN_DEFAULT_EMAIL: danivalencia@bookify.com
+      PGADMIN_DEFAULT_PASSWORD: admin123
+    ports:
+      - "5050:80"
+    depends_on:
+      - postgres
+
+volumes:
+  postgres_data:

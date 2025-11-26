@@ -1,0 +1,56 @@
+syntax = "proto3";
+
+package gateway.v1;
+
+option go_package = "proto/gateway_proto;gatewaypb";
+
+
+message GetBookOverviewRequest {
+  string book_id = 1;
+  string user_id = 2;  // opcional, solo si se quiere traer la shelf
+}
+
+message OverviewBook {
+  string id = 1;
+  string title = 2;
+  string author = 3;
+  int32 pages = 4;
+  string edition = 5;
+}
+
+message Review {
+  string id = 1;
+  string book_id = 2;
+  string user_id = 3;
+  int32 rating = 4;
+  string text = 5;
+}
+
+message Song {
+  string title = 1;
+  string artist = 2;
+}
+
+message Playlist {
+  string book_id = 1;
+  repeated Song tracks = 2;
+}
+
+message ShelfItem {
+  string user_id = 1;
+  string book_id = 2;
+  string shelf = 3;
+}
+
+message GetBookOverviewResponse {
+  OverviewBook book = 1;
+  repeated Review reviews = 2;
+  Playlist playlist = 3;
+  ShelfItem shelf = 4;
+}
+
+
+service GatewayService {
+  rpc GetBookOverview(GetBookOverviewRequest)
+      returns (GetBookOverviewResponse);
+}

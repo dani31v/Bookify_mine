@@ -1,0 +1,33 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: shelves
+  namespace: bookify
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: shelves
+  template:
+    metadata:
+      labels:
+        app: shelves
+    spec:
+      containers:
+        - name: shelves
+          image: bookify_mine-shelves:latest
+          imagePullPolicy: IfNotPresent   # 👈 CLAVE
+          ports:
+            - containerPort: 8084   # HTTP
+            - containerPort: 50055  # gRPC
+          env:
+            - name: DB_HOST
+              value: "postgres"
+            - name: DB_USER
+              value: "userbookify"
+            - name: DB_PASSWORD
+              value: "user_bookify"
+            - name: DB_NAME
+              value: "bookify"
+            - name: DB_PORT
+              value: "5432"

@@ -1,0 +1,122 @@
+apiVersion: v1
+kind: Secret
+metadata:
+  name: db-credentials
+  namespace: bookify
+type: Opaque
+stringData:
+  POSTGRES_USER: userbookify
+  POSTGRES_PASSWORD: user_bookify
+  POSTGRES_DB: bookify
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: postgres-init-sql
+  namespace: bookify
+data:
+  init.sql: |
+    DO
+    $do$
+    BEGIN
+        IF NOT EXISTS (
+            SELECT FROM pg_catalog.pg_roles WHERE rolname = 'userbookify'
+        ) THEN
+            CREATE ROLE userbookify WITH LOGIN PASSWORD 'user_bookify';
+        END IF;
+    END
+    $do$;
+
+    CREATE TABLE IF NOT EXISTS books (
+        id TEXT PRIMARY KEY,
+        title TEXT NOT NULL,
+        author TEXT NOT NULL,
+        pages INT,
+        edition TEXT
+    );
+
+    CREATE TABLE IF NOT EXISTS shelf_items (
+        id TEXT PRIMARY KEY,
+        user_id TEXT NOT NULL,
+        book_id TEXT NOT NULL,
+        shelf TEXT NOT NULL
+    );
+
+    CREATE TABLE IF NOT EXISTS reviews (
+        id TEXT PRIMARY KEY,
+        book_id TEXT NOT NULL,
+        user_id TEXT NOT NULL,
+        rating INT NOT NULL,
+        text TEXT
+    );
+
+    INSERT INTO books (id, title, author, pages, edition) VALUES
+        ('book-1', 'The Go Workshop', 'Delio D''Anna', 350, '1st'),
+        ('book-2', 'Domain-Driven Design', 'Eric Evans', 560, 'Hardcover'),
+        ('book-3', 'Clean Architecture', 'Robert C. Martin', 320, 'Paperback')
+    ON CONFLICT (id) DO NOTHING;
+
+    INSERT INTO shelf_items (id, user_id, book_id, shelf) VALUES
+        ('shelf-1', 'user-1', 'book-1', 'reading'),
+        ('shelf-2', 'user-1', 'book-2', 'wishlist'),
+        ('shelf-3', 'user-2', 'book-3', 'completed')
+    ON CONFLICT (id) DO NOTHING;
+
+    INSERT INTO reviews (id, book_id, user_id, rating, text) VALUES
+        ('review-1', 'book-1', 'user-1', 5, 'Excelente introducción a Go.'),
+        ('review-2', 'book-2', 'user-2', 4, 'Profundo pero un poco denso.'),
+        ('review-3', 'book-3', 'user-3', 5, 'Imprescindible para arquitectos.')
+    ON CONFLICT (id) DO NOTHING;
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres
+  namespace: bookify
+spec:
+  selector:
+    app: postgres
+  ports:
+    - name: postgres
+      port: 5432
+      targetPort: 5432
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: postgres
+  namespace: bookify
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: postgres
+  template:
+    metadata:
+      labels:
+        app: postgres
+    spec:
+      containers:
+        - name: postgres
+          image: postgres:15
+          ports:
+            - containerPort: 5432
+          envFrom:
+            - secretRef:
+                name: db-credentials
+          env:
+            - name: PGDATA
+              value: /var/lib/postgresql/data/pgdata
+          volumeMounts:
+            - name: postgres-data
+              mountPath: /var/lib/postgresql
+            - name: postgres-init
+              mountPath: /docker-entrypoint-initdb.d/init.sql
+              subPath: init.sql
+              readOnly: true
+      volumes:
+        - name: postgres-data
+          emptyDir: {}
+        - name: postgres-init
+          configMap:
+            name: postgres-init-sql

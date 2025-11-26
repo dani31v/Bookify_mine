@@ -1,0 +1,39 @@
+syntax = "proto3";
+
+package playlist.v1;
+
+option go_package = "proto/playlist_proto/transport/grpc;playlistgrpc";
+
+message Song  {
+  string title = 1;
+  string artist = 2;
+}
+
+message Playlist {
+  string book_id = 1;
+  repeated Song tracks = 2;
+}
+
+message GetPlaylistForBookRequest {
+  string book_id = 1;
+}
+
+message GetPlaylistForBookResponse {
+  Playlist playlist = 1;
+}
+
+
+message CreatePlaylistRequest {
+  Playlist playlist = 1;
+}
+
+message CreatePlaylistResponse {
+  Playlist playlist = 1;
+}
+
+
+service PlaylistService {
+  rpc GetPlaylistForBook(GetPlaylistForBookRequest) returns (GetPlaylistForBookResponse);
+  rpc CreatePlaylist(CreatePlaylistRequest) returns (CreatePlaylistResponse);
+}
+

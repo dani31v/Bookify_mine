@@ -1,0 +1,21 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gateway
+  namespace: bookify
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: gateway
+  template:
+    metadata:
+      labels:
+        app: gateway
+    spec:
+      containers:
+        - name: gateway
+          image: bookify_mine-gateway   # EXACTO ESTE NOMBRE
+          imagePullPolicy: Never        # 🔥 evita que trate de bajar de Docker Hub
+          ports:
+            - containerPort: 8090

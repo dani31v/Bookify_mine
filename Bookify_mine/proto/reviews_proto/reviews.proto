@@ -1,0 +1,37 @@
+syntax = "proto3";
+
+package reviews.v1;
+
+option go_package = "proto/reviews_proto/transport/grpc;reviewsgrpc";
+
+message Review  {
+    string id = 1;
+    string book_id = 2;
+    string user_id = 3;
+    int32 rating = 4;
+    string text = 5;
+}
+
+message GetReviewsRequest {
+    string book_id = 1;
+}
+
+message GetReviewsResponse {
+  repeated Review reviews = 1;
+}
+
+
+message CreateReviewRequest {
+  Review review = 1;
+}
+
+message CreateReviewResponse {
+  Review review = 1;
+}
+
+
+service ReviewService {
+  rpc GetReviews(GetReviewsRequest) returns (GetReviewsResponse);
+  rpc CreateReview(CreateReviewRequest) returns (CreateReviewResponse);
+}
+

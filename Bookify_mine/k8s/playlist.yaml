@@ -1,0 +1,22 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: playlist
+  namespace: bookify
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: playlist
+  template:
+    metadata:
+      labels:
+        app: playlist
+    spec:
+      containers:
+        - name: playlist
+          image: bookify_mine-playlist:latest   # <-- IMPORTANTE
+          imagePullPolicy: Never                # <-- CLAVE PARA KIND
+          ports:
+            - containerPort: 8083   # HTTP
+            - containerPort: 50053  # gRPC
