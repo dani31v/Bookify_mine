@@ -9,6 +9,7 @@ import (
 	"bookify/pkg/httpserver"
 
 	"bookify/services/library/internal/controller"
+	httpH "bookify/services/library/internal/handler/http"
 	memoryRepo "bookify/services/library/internal/repository/memory"
 	postgresRepo "bookify/services/library/internal/repository/postgres"
 
@@ -66,5 +67,6 @@ func main() {
 	}()
 	httpserver.Start(httpPort, func(mux *http.ServeMux) {
 		mux.HandleFunc("/healthz", health.Handler)
+		mux.HandleFunc("/books", httpH.BooksHandler(ctrl))
 	})
 }

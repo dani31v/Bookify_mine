@@ -32,3 +32,12 @@ func (c *LibraryClient) GetBook(ctx context.Context, id string) (*librarygrpc.Bo
 	}
 	return resp.Book, nil
 }
+
+func (c *LibraryClient) CreateBook(ctx context.Context, book *librarygrpc.Book) (*librarygrpc.Book, error) {
+	req := &librarygrpc.CreateBookRequest{Book: book}
+	resp, err := c.client.CreateBook(ctx, req)
+	if err != nil {
+		return nil, err
+	}
+	return resp.Book, nil
+}

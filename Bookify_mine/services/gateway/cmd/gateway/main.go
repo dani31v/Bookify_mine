@@ -4,10 +4,11 @@ import (
 	"log"
 	"net/http"
 
+	"bookify/pkg/httpserver"
+
 	c "bookify/services/gateway/internal/clients"
 	gatewaygrpc "bookify/services/gateway/internal/handler/grpc"
-
-	"bookify/pkg/httpserver"
+	resthandler "bookify/services/gateway/internal/handler/rest"
 )
 
 const serviceName = "gateway"
@@ -36,8 +37,9 @@ func main() {
 	}
 
 	h := gatewaygrpc.NewOverviewHandler(lib, rev, pl, sh)
+	libraryHandler := resthandler.NewLibraryHandler(lib)
 
 	httpserver.Start(port, func(mux *http.ServeMux) {
-		*mux = *gatewaygrpc.NewMux(h)
+		*mux = *gatewaygrpc.NewMux(h, libraryHandler)
 	})
 }
