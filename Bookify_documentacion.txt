@@ -1,0 +1,59 @@
+Design document [Bookify]
+Author: Daniela Valencia (ID pendiente)
+
+[Introducción]
+Bookify es una app universitaria pensada para reunir todo lo relacionado con un libro: ficha, reseñas, playlists inspiradas y el avance de cada lector. Está formada por cuatro microservicios gRPC y un gateway HTTP que agrupa la información y la expone en `/overview/book` (puerto 8090). Un frontend estático consulta este endpoint desde el navegador.
+
+[Requerimientos]
+1. Entorno Kubernetes (Kind/Minikube) con al menos 4 vCPU y 8 GB de RAM para desplegar los componentes.
+2. Docker para crear las imágenes locales `bookify_mine-*` y cargarlas al clúster.
+3. Go 1.21+ y toolchain gRPC para compilar los servicios y generar clientes.
+4. PostgreSQL 15 expuesto en el puerto 5432 con el esquema compartido.
+5. Navegador moderno + servidor estático simple (`python3 -m http.server 4173`) para el frontend.
+
+[Dependencias]
+- Trabajo previo: escribir contratos proto (library/reviews/playlist/shelves), construir imágenes Docker y cargar datos de prueba (libros, reseñas, shelf items).
+- Temas por estudiar: gRPC básico, Deployments/Services/NodePorts en Kubernetes, uso de Docker, JavaScript moderno.
+
+[Fuera del alcance]
+- No hay autenticación real de usuarios ni autorización por roles.
+- Sin panel admin para modificar datos desde la web.
+- Persistencia efímera (se usa `emptyDir`), sin respaldos automáticos.
+- No se incluyen herramientas avanzadas de monitoreo ni pipelines CI/CD.
+
+[Detalles de diseño]
+Frontend: página con HTML/CSS/JS que pide la URL del gateway, `bookId` y `userId`, y muestra cuatro paneles: libro, playlist, reseñas y shelf. Maneja estados de carga y errores, guarda la URL en `localStorage` y siempre hace peticiones `fetch` a `http://<gateway>:8090/overview/book`.
+
+Backend:
+- Gateway (puerto 8090): recibe la petición, llama en paralelo a los gRPC internos y devuelve un JSON consolidado. Publica CORS para permitir llamadas desde el frontend.
+- Library (HTTP 8081, gRPC 50051): entrega datos del libro (`id`, `title`, `author`, `pages`, `edition`).
+- Reviews (HTTP 8082, gRPC 50052): devuelve listado de reseñas y ratings.
+- Playlist (HTTP 8083, gRPC 50053): ofrece playlist de canciones por libro.
+- Shelves (HTTP 8084, gRPC 50055): informa en qué shelf (“Por leer”, “Leyendo”, “Terminado”) está cada libro para un usuario.
+Todos los servicios exponen `/healthz` y comparten PostgreSQL (5432) mediante variables `DB_HOST`, `DB_USER`, etc.
+
+Modelo de datos:
+- `books(id, title, author, pages, edition)`.
+- `reviews(id, book_id, user_id, rating, text)`.
+- `shelf_items(id, user_id, book_id, shelf)` con valores tipo `reading`, `wishlist`, `completed`.
+- `playlists(book_id, tracks[])` con canciones (`title`, `artist`).
+
+[Implementación]
+1. Generar código gRPC a partir de los `.proto`.
+2. Programar repositorios/controladores y servidores HTTP/gRPC.
+3. Build de imágenes Docker (`bookify_mine-*`).
+4. Desplegar Postgres y los Deployments/Services en Kubernetes, incluyendo `NodePort 30090` para el gateway.
+5. Servir el frontend y probar con solicitudes reales (`curl http://localhost:8090/overview/book?bookId=book-1`).
+
+[Línea del tiempo]
+Semana 1: investigación, modelos y prototipos proto.
+Semana 2: microservicios + Postgres, pruebas unitarias.
+Semana 3: gateway, cliente web y ajustes de CORS.
+Semana 4: despliegue en Kubernetes, pruebas end-to-end y documentación.
+
+[Riesgos]
+- Postgres único sin HA: si cae, los servicios fallan.
+- Falta de autenticación: cualquiera con el NodePort puede consultar datos.
+- Recursos sin límites declarados pueden generar contención en el clúster.
+- Curva de aprendizaje en gRPC/K8s puede retrasar entregables.
+- Cambios tardíos en los contratos proto implican recompilar todos los servicios.

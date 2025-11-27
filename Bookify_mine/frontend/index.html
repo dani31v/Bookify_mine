@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Bookify · Panel de libros</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <main class="page">
+      <section class="card">
+        <h1>Bookify · overview</h1>
+        <p class="muted">
+          Consulta toda la información que los microservicios exponen a través del gateway
+          <code>/overview/book</code>.
+        </p>
+        <form id="query-form" class="grid-form">
+          <label>
+            URL del gateway
+            <input type="url" id="base-url" name="base-url" placeholder="http://localhost:8090" required />
+          </label>
+          <label>
+            ID del libro
+            <input type="text" id="book-id" name="book-id" placeholder="book-123" required />
+          </label>
+          <label>
+            ID del usuario <span class="muted">(opcional)</span>
+            <input type="text" id="user-id" name="user-id" placeholder="user-123" />
+          </label>
+          <button type="submit" class="primary">Consultar</button>
+        </form>
+        <div id="status" role="status" class="status muted">Esperando una consulta…</div>
+      </section>
+
+      <section class="card" id="results-section">
+        <h2>Resultados</h2>
+        <div class="results-grid">
+          <article>
+            <h3>Libro</h3>
+            <div id="book-result" class="result-panel"></div>
+          </article>
+          <article>
+            <h3>Playlist</h3>
+            <div id="playlist-result" class="result-panel"></div>
+          </article>
+          <article>
+            <h3>Reseñas</h3>
+            <div id="reviews-result" class="result-panel"></div>
+          </article>
+          <article>
+            <h3>Shelf</h3>
+            <div id="shelf-result" class="result-panel"></div>
+          </article>
+        </div>
+        <details class="raw-block">
+          <summary>Ver JSON raw</summary>
+          <pre id="raw-json">—</pre>
+        </details>
+      </section>
+    </main>
+    <script src="./app.js" type="module"></script>
+  </body>
+</html>

@@ -63,7 +63,7 @@ data:
     ON CONFLICT (id) DO NOTHING;
 
     INSERT INTO reviews (id, book_id, user_id, rating, text) VALUES
-        ('review-1', 'book-1', 'user-1', 5, 'Excelente introducción a Go.'),
+        ('review-1', 'book-1', 'user-1', 5, 'Excelente.'),
         ('review-2', 'book-2', 'user-2', 4, 'Profundo pero un poco denso.'),
         ('review-3', 'book-3', 'user-3', 5, 'Imprescindible para arquitectos.')
     ON CONFLICT (id) DO NOTHING;
